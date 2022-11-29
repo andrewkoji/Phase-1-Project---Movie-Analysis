@@ -33,6 +33,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+%matplotlib inline
 ```
 
 
@@ -53,76 +54,67 @@ ls
     
      Directory of C:\Users\alevi\Documents\Flatiron\dsc-data-science-env-config\Course_Folder\Phase_1\Phase_1_Project\Phase-1-Project---Movie-Analysis\zippedData
     
-    11/23/2022  03:56 PM    <DIR>          .
-    11/25/2022  03:21 PM    <DIR>          ..
+    11/28/2022  04:42 PM    <DIR>          .
+    11/28/2022  07:30 PM    <DIR>          ..
     11/22/2022  11:31 PM    <DIR>          .ipynb_checkpoints
-    11/25/2022  02:48 PM            33,800 Bar Chart Rev vs Rating.jpeg
-    11/25/2022  02:48 PM            50,148 Bar_chart_month_profit.jpeg
+    11/28/2022  07:26 PM            34,071 Bar Chart Rev vs Rating.jpeg
+    11/28/2022  07:26 PM            50,148 Bar_chart_month_profit.jpeg
     11/22/2022  11:28 PM            53,544 bom.movie_gross.csv.gz
-    11/25/2022  02:48 PM            78,914 production_budget_vs_net_profit.jpeg
+    11/28/2022  04:42 PM                 0 im.db
+    11/28/2022  07:26 PM            78,914 production_budget_vs_net_profit.jpeg
     11/23/2022  03:57 PM            68,866 Profit_by_Genre.jpeg
-    11/25/2022  02:48 PM            85,924 Revenue by Genre.jpeg
-    11/25/2022  02:48 PM            56,647 Revenue by Month.jpeg
+    11/28/2022  07:26 PM            80,086 Revenue by Genre.jpeg
+    11/28/2022  07:26 PM            55,692 Revenue by Month.jpeg
     11/22/2022  11:28 PM           498,202 rt.movie_info.tsv.gz
     11/22/2022  11:28 PM         3,402,194 rt.reviews.tsv.gz
     11/22/2022  11:28 PM           827,840 tmdb.movies.csv.gz
     11/22/2022  11:28 PM           153,218 tn.movie_budgets.csv.gz
-                  11 File(s)      5,309,297 bytes
-                   3 Dir(s)  72,493,768,704 bytes free
+                  12 File(s)      5,302,775 bytes
+                   3 Dir(s)  67,778,834,432 bytes free
     
 
 ## The Data
 
 
 ```python
+#The Movie DataBase
 tmdb = pd.read_csv('tmdb.movies.csv.gz')
+
+#Box Office Movies
 bom = pd.read_csv('bom.movie_gross.csv.gz')
+
+#Rotten Tomatoes Reviews
 rt_reviews = pd.read_csv('rt.reviews.tsv.gz', sep='\t',encoding=('ISO-8859-1'),low_memory =False)
+
+#Rotten Tomatoes Movie Info
 rt_info = pd.read_csv('rt.movie_info.tsv.gz', sep='\t')
+
+#The Numbers Movie Budgets
 budgets = pd.read_csv('tn.movie_budgets.csv.gz')
 ```
+
+
+```python
+print(('Length of The Movie Database: {}'.format(len(tmdb))))
+print('Length of Box Office Movies: {}'.format(len(bom)))
+print('Length of Rotten Tomatoes Reviews: {}'.format(len(rt_reviews)))
+print('Length of Rotten Tomatoes Movie Info: {}'.format(len(rt_info)))
+print('Length of The Numbers Movie Budgets: {}'.format(len(budgets)))
+
+```
+
+    Length of The Movie Database: 26517
+    Length of Box Office Movies: 3387
+    Length of Rotten Tomatoes Reviews: 54432
+    Length of Rotten Tomatoes Movie Info: 1560
+    Length of The Numbers Movie Budgets: 5782
+    
 
 The libraries above are the datasets that will be cleaned and analyzed for the analysis. 
 
 ## Getting Rating Data From Rotten Tomatoes
 
 # Cleaning the Review Data
-
-
-```python
-#import review data
-rt_reviews = pd.read_csv('rt.reviews.tsv.gz', sep='\t',encoding=('ISO-8859-1'),low_memory =False)
-
-#filter by top critics
-rt_reviews = rt_reviews[rt_reviews['top_critic'] == 1]
-
-#change all "Letter Grade" ratings to a %
-rt_reviews['rating'] = rt_reviews['rating'].astype(str)
-rt_reviews['rating'] = rt_reviews['rating'].apply(lambda x:\
-                                                  '100' if 'A+' in x\
-                                                  else '98' if 'A' in x\
-                                                  else '95' if 'A-' in x\
-                                                  else '88' if 'B+' in x\
-                                                  else '85' if 'B' in x\
-                                                  else '80' if 'B-' in x\
-                                                  else '78' if 'C+' in x\
-                                                  else '75' if 'C' in x\
-                                                  else '70' if 'C-' in x\
-                                                  else '68' if 'D+' in x\
-                                                  else '65' if 'D' in x\
-                                                  else '60' if 'D-' in x\
-                                                  else '50' if 'F' in x\
-                                                  else '45' if 'N' in x\
-                                                  else '40' if 'R' in x else x)
-#change all "fractional" reviews to %
-rt_reviews['rating'] = rt_reviews['rating'].str.split('/').apply(lambda x: (float(x[0]) / float(x[1])) * 100\
-                                                  if (len(x) > 1 and float(x[1]) != 0)\
-                                                  else float(x[0]))
-#some reviews were over 100% because te reviews had improper fractions(eg. 2.1/2). They were converted to 100
-rt_reviews['rating'] = rt_reviews['rating'].apply(lambda x: 100 if x > 100 else x)
-rt_reviews = rt_reviews.sort_values('rating', ascending=False)
-
-```
 
 ## Merging Tomato Data
 
@@ -138,9 +130,9 @@ print(len(rt_info))
 print(len(rt))
 ```
 
-    13096
+    54432
     1560
-    13096
+    54432
     
 
 ## Getting Genre Data
@@ -165,6 +157,36 @@ genre = genre.rename(columns={'box_office':'box_office_revenue'})
 genre = genre.rename(columns={'rating_x':'rating'})
 ```
 
+
+```python
+len(genre)
+```
+
+
+
+
+    54672
+
+
+
+
+```python
+genre['year'] = genre['theater_date'].astype(str).apply(lambda x: x[-4:]).astype(float)
+
+```
+
+
+```python
+min(genre['year']), max(genre['year'])
+```
+
+
+
+
+    (1958.0, 2018.0)
+
+
+
 ## Box Office Revenue by Genre
 
 
@@ -181,6 +203,7 @@ genre_revenue = genre.groupby('genre')['box_office_revenue'].mean().reset_index(
 #convert to millions 
 genre_revenue['box_office_revenue(in millions)'] = genre_revenue['box_office_revenue'] / 1000000
 
+genre_revenue = genre_revenue.sort_values('box_office_revenue(in millions)')
 #create bar graph of box office revenue by genre
 genre_revenue.plot(x='genre',y='box_office_revenue(in millions)',kind='barh',figsize=(12,8))
 plt.title('Box Office Revenue by Genre', size=20, **csfont)
@@ -192,7 +215,7 @@ plt.savefig("Revenue by Genre.jpeg",bbox_inches='tight') #save as jpg
 
 
     
-![png](output_23_0.png)
+![png](output_26_0.png)
     
 
 
@@ -209,20 +232,26 @@ rating_movie = rt.groupby('rating_y')['box_office'].mean().reset_index()
 #converting to millions
 rating_movie['box_office_rev'] = rating_movie['box_office'] / 1000000
 
-
+rating_movie = rating_movie.sort_values('box_office_rev', ascending=False)
 #bar graph of movie rating vs the box office revenue
-rating_movie.plot(x='rating_y',y='box_office_rev',kind='bar',figsize=(8,6))
+rating_movie.plot(x='rating_y',y='box_office_rev',kind='bar',figsize=(10,8))
 plt.ylabel('Average Box Office Revenue (millions)',size=15)
 plt.xlabel('Rating of Movie',size=15)
 plt.title('Average Box Office Revenue by Movie Rating',size=15)
-plt.savefig('Bar Chart Rev vs Rating.jpeg')
+# plt.savefig('Bar Chart Rev vs Rating.jpeg')
+plt.show()
 ```
 
 
     
-![png](output_26_0.png)
+![png](output_29_0.png)
     
 
+
+
+```python
+
+```
 
 ## What are the top 10 directors in terms of box office revenue?
 
@@ -268,52 +297,52 @@ directors.sort_values('box_office', ascending=False).head(10)
   </thead>
   <tbody>
     <tr>
-      <th>191</th>
+      <th>26581</th>
       <td>Mel Gibson</td>
       <td>368000000</td>
     </tr>
     <tr>
-      <th>5441</th>
+      <th>28440</th>
       <td>Peter Jackson</td>
       <td>303001229</td>
     </tr>
     <tr>
-      <th>2274</th>
+      <th>39981</th>
       <td>Sam Mendes</td>
       <td>299300000</td>
     </tr>
     <tr>
-      <th>8843</th>
+      <th>21985</th>
       <td>Jay Roach</td>
       <td>279167575</td>
     </tr>
     <tr>
-      <th>238</th>
+      <th>36952</th>
       <td>Chris Columbus</td>
       <td>261835892</td>
     </tr>
     <tr>
-      <th>3978</th>
+      <th>16183</th>
       <td>Joel Zwick</td>
       <td>241250669</td>
     </tr>
     <tr>
-      <th>0</th>
+      <th>20799</th>
       <td>Steven Spielberg</td>
       <td>234141872</td>
     </tr>
     <tr>
-      <th>4075</th>
+      <th>50317</th>
       <td>Peter Berg</td>
       <td>227946274</td>
     </tr>
     <tr>
-      <th>5025</th>
+      <th>45878</th>
       <td>Justin Lin</td>
       <td>209805005</td>
     </tr>
     <tr>
-      <th>5676</th>
+      <th>41852</th>
       <td>Andy Tennant</td>
       <td>177575142</td>
     </tr>
@@ -327,6 +356,68 @@ directors.sort_values('box_office', ascending=False).head(10)
 
 
 ```python
+#import review data
+rt_reviews = pd.read_csv('rt.reviews.tsv.gz', sep='\t',encoding=('ISO-8859-1'),low_memory =False)
+
+#filter by top critics
+rt_reviews = rt_reviews[rt_reviews['top_critic'] == 1]
+
+#change all "Letter Grade" ratings to a %
+rt_reviews['rating'] = rt_reviews['rating'].astype(str)
+rt_reviews['rating'] = rt_reviews['rating'].apply(lambda x:\
+                                                  '100' if 'A+' in x\
+                                                  else '98' if 'A' in x\
+                                                  else '95' if 'A-' in x\
+                                                  else '88' if 'B+' in x\
+                                                  else '85' if 'B' in x\
+                                                  else '80' if 'B-' in x\
+                                                  else '78' if 'C+' in x\
+                                                  else '75' if 'C' in x\
+                                                  else '70' if 'C-' in x\
+                                                  else '68' if 'D+' in x\
+                                                  else '65' if 'D' in x\
+                                                  else '60' if 'D-' in x\
+                                                  else '50' if 'F' in x\
+                                                  else '45' if 'N' in x\
+                                                  else '40' if 'R' in x else x)
+#change all "fractional" reviews to %
+rt_reviews['rating'] = rt_reviews['rating'].str.split('/').apply(lambda x: (float(x[0]) / float(x[1])) * 100\
+                                                  if (len(x) > 1 and float(x[1]) != 0)\
+                                                  else float(x[0]))
+#some reviews were over 100% because te reviews had improper fractions(eg. 2.1/2). They were converted to 100
+rt_reviews['rating'] = rt_reviews['rating'].apply(lambda x: 100 if x > 100 else x)
+rt_reviews = rt_reviews.sort_values('rating', ascending=False)
+
+```
+
+
+```python
+merged = pd.merge(rt_reviews,rt_info,on='id')
+
+```
+
+
+```python
+# Dropping nulls from ratings and Genre
+merged = merged[merged['rating_x'].notnull()]
+merged = merged[merged['box_office'].notnull()]
+#Changing box office revenue so it can be read numerically
+merged['box_office'] = merged['box_office'].str.replace(',','').apply(lambda x: int(x))
+#split the genre(eg. Action|Drama become -> [Action, Drama])
+merged['genre'] = merged['genre'].str.split('|')
+```
+
+
+```python
+#explode genre column so each value within the list has its own row. this will make it easier to use groupby for an analysis
+genre = merged.explode('genre')
+#rename columns
+genre = genre.rename(columns={'box_office':'box_office_revenue'})
+genre = genre.rename(columns={'rating_x':'rating'})
+```
+
+
+```python
 genre_rating = genre.groupby('genre')['rating'].mean().reset_index()
 ax = genre_rating.plot(x='genre',y='rating',kind='barh')
 plt.show()
@@ -334,7 +425,7 @@ plt.show()
 
 
     
-![png](output_31_0.png)
+![png](output_39_0.png)
     
 
 
@@ -421,7 +512,7 @@ print('The chart shows more significant revenue during the months of November an
 
 
     
-![png](output_39_1.png)
+![png](output_47_1.png)
     
 
 
@@ -431,142 +522,18 @@ The chart shows more significant revenue during the months of November and Decem
 
 
 ```python
-budgets
+budgets['year'] = budgets['release_date'].astype(str).apply(lambda x: x[-4:]).astype(int)
+```
+
+
+```python
+min(budgets['year']), max(budgets['year'])
 ```
 
 
 
 
-<div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>id</th>
-      <th>release_date</th>
-      <th>movie</th>
-      <th>production_budget</th>
-      <th>domestic_gross</th>
-      <th>worldwide_gross</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>1</td>
-      <td>Dec 18, 2009</td>
-      <td>Avatar</td>
-      <td>$425,000,000</td>
-      <td>$760,507,625</td>
-      <td>$2,776,345,279</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>2</td>
-      <td>May 20, 2011</td>
-      <td>Pirates of the Caribbean: On Stranger Tides</td>
-      <td>$410,600,000</td>
-      <td>$241,063,875</td>
-      <td>$1,045,663,875</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>3</td>
-      <td>Jun 7, 2019</td>
-      <td>Dark Phoenix</td>
-      <td>$350,000,000</td>
-      <td>$42,762,350</td>
-      <td>$149,762,350</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>4</td>
-      <td>May 1, 2015</td>
-      <td>Avengers: Age of Ultron</td>
-      <td>$330,600,000</td>
-      <td>$459,005,868</td>
-      <td>$1,403,013,963</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>5</td>
-      <td>Dec 15, 2017</td>
-      <td>Star Wars Ep. VIII: The Last Jedi</td>
-      <td>$317,000,000</td>
-      <td>$620,181,382</td>
-      <td>$1,316,721,747</td>
-    </tr>
-    <tr>
-      <th>...</th>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-      <td>...</td>
-    </tr>
-    <tr>
-      <th>5777</th>
-      <td>78</td>
-      <td>Dec 31, 2018</td>
-      <td>Red 11</td>
-      <td>$7,000</td>
-      <td>$0</td>
-      <td>$0</td>
-    </tr>
-    <tr>
-      <th>5778</th>
-      <td>79</td>
-      <td>Apr 2, 1999</td>
-      <td>Following</td>
-      <td>$6,000</td>
-      <td>$48,482</td>
-      <td>$240,495</td>
-    </tr>
-    <tr>
-      <th>5779</th>
-      <td>80</td>
-      <td>Jul 13, 2005</td>
-      <td>Return to the Land of Wonders</td>
-      <td>$5,000</td>
-      <td>$1,338</td>
-      <td>$1,338</td>
-    </tr>
-    <tr>
-      <th>5780</th>
-      <td>81</td>
-      <td>Sep 29, 2015</td>
-      <td>A Plague So Pleasant</td>
-      <td>$1,400</td>
-      <td>$0</td>
-      <td>$0</td>
-    </tr>
-    <tr>
-      <th>5781</th>
-      <td>82</td>
-      <td>Aug 5, 2005</td>
-      <td>My Date With Drew</td>
-      <td>$1,100</td>
-      <td>$181,041</td>
-      <td>$181,041</td>
-    </tr>
-  </tbody>
-</table>
-<p>5782 rows × 6 columns</p>
-</div>
+    (1915, 2020)
 
 
 
@@ -641,7 +608,7 @@ monthly = monthly.sort_values('month_no')
 ```python
 #create bar chart for average profit by month
 monthly.plot(x='month',y='profit(in billions)', kind='bar',figsize=(10,6))
-plt.title('Production Budget vs Average Net Profit', size=20, **csfont)
+plt.title('Month vs Average Net Profit', size=20, **csfont)
 plt.ylabel('Average Net Profit(in billions)',size=20, **csfont)
 plt.xlabel('Month',size=20,**csfont)
 plt.savefig("Bar_chart_month_profit.jpeg",bbox_inches='tight') #save as jpg
@@ -649,7 +616,7 @@ plt.savefig("Bar_chart_month_profit.jpeg",bbox_inches='tight') #save as jpg
 
 
     
-![png](output_45_0.png)
+![png](output_54_0.png)
     
 
 
@@ -688,7 +655,7 @@ print('As shown in the chart below, the average return on the movies budget by m
 
 
     
-![png](output_46_1.png)
+![png](output_55_1.png)
     
 
 
@@ -732,7 +699,7 @@ print("The Correlation Coefficient is: {}.This is a sign that the budget has a p
 
 
     
-![png](output_49_0.png)
+![png](output_58_0.png)
     
 
 
@@ -799,7 +766,7 @@ print("The Correlation Coefficient is: {}.This is a sign that the budget has a p
 
 
     
-![png](output_52_1.png)
+![png](output_61_1.png)
     
 
 
@@ -835,8 +802,15 @@ df = pd.read_sql('''SELECT *
 
 ```python
 imdb_budgets = pd.merge(df,budgets,left_on='original_title',right_on='movie',how='inner')
-
+len(imdb_budgets)
 ```
+
+
+
+
+    43969
+
+
 
 ## Checking Profit by Genre
 
@@ -844,12 +818,330 @@ imdb_budgets = pd.merge(df,budgets,left_on='original_title',right_on='movie',how
 ```python
 imdb_budgets['genres'] = imdb_budgets['genres'].str.split(',')
 imdb_budgets_genres = imdb_budgets.explode('genres')
-
+imdb_budgets_genres
 ```
 
 
+
+
+<div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>movie_id</th>
+      <th>primary_title</th>
+      <th>original_title</th>
+      <th>start_year</th>
+      <th>runtime_minutes</th>
+      <th>genres</th>
+      <th>averagerating</th>
+      <th>numvotes</th>
+      <th>ordering</th>
+      <th>title</th>
+      <th>...</th>
+      <th>worldwide_gross</th>
+      <th>total_gross</th>
+      <th>profit(in billions)</th>
+      <th>month</th>
+      <th>year</th>
+      <th>budget</th>
+      <th>profit</th>
+      <th>total_gross(in billions)</th>
+      <th>% of budget</th>
+      <th>total gross(billions)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>tt1375666</td>
+      <td>Inception</td>
+      <td>Inception</td>
+      <td>2010</td>
+      <td>148.000</td>
+      <td>Action</td>
+      <td>8.800</td>
+      <td>1841066</td>
+      <td>1</td>
+      <td>El origen</td>
+      <td>...</td>
+      <td>835524642.000</td>
+      <td>1128100837.000</td>
+      <td>0.968</td>
+      <td>July</td>
+      <td>2010</td>
+      <td>0.160</td>
+      <td>0.968</td>
+      <td>1.128</td>
+      <td>605.063</td>
+      <td>1.128</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>tt1375666</td>
+      <td>Inception</td>
+      <td>Inception</td>
+      <td>2010</td>
+      <td>148.000</td>
+      <td>Adventure</td>
+      <td>8.800</td>
+      <td>1841066</td>
+      <td>1</td>
+      <td>El origen</td>
+      <td>...</td>
+      <td>835524642.000</td>
+      <td>1128100837.000</td>
+      <td>0.968</td>
+      <td>July</td>
+      <td>2010</td>
+      <td>0.160</td>
+      <td>0.968</td>
+      <td>1.128</td>
+      <td>605.063</td>
+      <td>1.128</td>
+    </tr>
+    <tr>
+      <th>0</th>
+      <td>tt1375666</td>
+      <td>Inception</td>
+      <td>Inception</td>
+      <td>2010</td>
+      <td>148.000</td>
+      <td>Sci-Fi</td>
+      <td>8.800</td>
+      <td>1841066</td>
+      <td>1</td>
+      <td>El origen</td>
+      <td>...</td>
+      <td>835524642.000</td>
+      <td>1128100837.000</td>
+      <td>0.968</td>
+      <td>July</td>
+      <td>2010</td>
+      <td>0.160</td>
+      <td>0.968</td>
+      <td>1.128</td>
+      <td>605.063</td>
+      <td>1.128</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>tt1375666</td>
+      <td>Inception</td>
+      <td>Inception</td>
+      <td>2010</td>
+      <td>148.000</td>
+      <td>Action</td>
+      <td>8.800</td>
+      <td>1841066</td>
+      <td>2</td>
+      <td>Dasatskisi</td>
+      <td>...</td>
+      <td>835524642.000</td>
+      <td>1128100837.000</td>
+      <td>0.968</td>
+      <td>July</td>
+      <td>2010</td>
+      <td>0.160</td>
+      <td>0.968</td>
+      <td>1.128</td>
+      <td>605.063</td>
+      <td>1.128</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>tt1375666</td>
+      <td>Inception</td>
+      <td>Inception</td>
+      <td>2010</td>
+      <td>148.000</td>
+      <td>Adventure</td>
+      <td>8.800</td>
+      <td>1841066</td>
+      <td>2</td>
+      <td>Dasatskisi</td>
+      <td>...</td>
+      <td>835524642.000</td>
+      <td>1128100837.000</td>
+      <td>0.968</td>
+      <td>July</td>
+      <td>2010</td>
+      <td>0.160</td>
+      <td>0.968</td>
+      <td>1.128</td>
+      <td>605.063</td>
+      <td>1.128</td>
+    </tr>
+    <tr>
+      <th>...</th>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+      <td>...</td>
+    </tr>
+    <tr>
+      <th>43964</th>
+      <td>tt3105014</td>
+      <td>Hybrid</td>
+      <td>Hybrid</td>
+      <td>2013</td>
+      <td>104.000</td>
+      <td>Sport</td>
+      <td>7.200</td>
+      <td>5</td>
+      <td>3</td>
+      <td>Hybrid</td>
+      <td>...</td>
+      <td>162605.000</td>
+      <td>325210.000</td>
+      <td>0.000</td>
+      <td>May</td>
+      <td>2002</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>0.000</td>
+      <td>62.605</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>43965</th>
+      <td>tt3570720</td>
+      <td>Heaven's Gate</td>
+      <td>Heaven's Gate</td>
+      <td>2013</td>
+      <td>47.000</td>
+      <td>Documentary</td>
+      <td>6.800</td>
+      <td>5</td>
+      <td>1</td>
+      <td>Wingsuit Daredevil</td>
+      <td>...</td>
+      <td>3484523.000</td>
+      <td>6968854.000</td>
+      <td>-0.037</td>
+      <td>November</td>
+      <td>1980</td>
+      <td>0.044</td>
+      <td>-0.037</td>
+      <td>0.007</td>
+      <td>-84.162</td>
+      <td>0.007</td>
+    </tr>
+    <tr>
+      <th>43966</th>
+      <td>tt3570720</td>
+      <td>Heaven's Gate</td>
+      <td>Heaven's Gate</td>
+      <td>2013</td>
+      <td>47.000</td>
+      <td>Documentary</td>
+      <td>6.800</td>
+      <td>5</td>
+      <td>2</td>
+      <td>Heaven's Gate</td>
+      <td>...</td>
+      <td>3484523.000</td>
+      <td>6968854.000</td>
+      <td>-0.037</td>
+      <td>November</td>
+      <td>1980</td>
+      <td>0.044</td>
+      <td>-0.037</td>
+      <td>0.007</td>
+      <td>-84.162</td>
+      <td>0.007</td>
+    </tr>
+    <tr>
+      <th>43967</th>
+      <td>tt3570720</td>
+      <td>Heaven's Gate</td>
+      <td>Heaven's Gate</td>
+      <td>2013</td>
+      <td>47.000</td>
+      <td>Documentary</td>
+      <td>6.800</td>
+      <td>5</td>
+      <td>3</td>
+      <td>Heaven's Gate</td>
+      <td>...</td>
+      <td>3484523.000</td>
+      <td>6968854.000</td>
+      <td>-0.037</td>
+      <td>November</td>
+      <td>1980</td>
+      <td>0.044</td>
+      <td>-0.037</td>
+      <td>0.007</td>
+      <td>-84.162</td>
+      <td>0.007</td>
+    </tr>
+    <tr>
+      <th>43968</th>
+      <td>tt6971106</td>
+      <td>The Black Hole</td>
+      <td>The Black Hole</td>
+      <td>2017</td>
+      <td>nan</td>
+      <td>Comedy</td>
+      <td>4.200</td>
+      <td>5</td>
+      <td>1</td>
+      <td>The Black Hole</td>
+      <td>...</td>
+      <td>35841901.000</td>
+      <td>71683802.000</td>
+      <td>0.052</td>
+      <td>December</td>
+      <td>1979</td>
+      <td>0.020</td>
+      <td>0.052</td>
+      <td>0.072</td>
+      <td>258.419</td>
+      <td>0.072</td>
+    </tr>
+  </tbody>
+</table>
+<p>115302 rows × 30 columns</p>
+</div>
+
+
+
+
 ```python
-imdb_budgets_genres_by_profit = imdb_budgets_genres.groupby('genres')['profit'].mean()
+imdb_budgets_genres_by_profit = imdb_budgets_genres.groupby('genres')['profit'].mean().reset_index()
+imdb_budgets_genres_by_profit = imdb_budgets_genres_by_profit.sort_values('profit')
+
 imdb_budgets_genres_by_profit.plot(x='genres',y='profit',kind='barh',figsize=(12,8))
 plt.xlabel('Profit(billions)',size=20,**csfont)
 plt.ylabel('Genres',size=20,**csfont)
@@ -868,7 +1160,7 @@ However, when looking at the data for profit the spread is slightly different. M
 
 
     
-![png](output_61_1.png)
+![png](output_70_1.png)
     
 
 
